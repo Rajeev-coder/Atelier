@@ -1,0 +1,26 @@
+{
+  "name": "atelier",
+  "version": "1.0.0",
+  "description": "Multi-tenant Salon Operations and Booking Platform",
+  "license": "MIT",
+  "type": "module",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "db:migrate": "tsx tools/migrate.ts",
+    "db:seed": "tsx tools/seed.ts"
+  },
+  "dependencies": {
+    "pg": "^8.23.1",
+    "zod": "^3.25.76"
+  },
+  "devDependencies": {
+    "@types/node": "^22.20.5",
+    "@types/pg": "^8.23.1",
+    "tsx": "^4.23.15",
+    "typescript": "^5.9.3",
+    "vitest": "^2.1.9"
+  }
+}

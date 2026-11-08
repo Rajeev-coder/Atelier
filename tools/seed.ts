@@ -257,15 +257,15 @@ const SEED_DATA: TenantSeedSpec[] = [
   // 3. PREMIUM HAIR & AESTHETIC LOUNGE
   {
     provisioningKey: 'prov-salon-003',
-    name: 'Femme Luxe Lounge & Spa',
-    slug: 'femme-luxe-salon',
-    ownerEmail: 'owner@femmeluxe.com',
+    name: 'Luxe Salon & Spa',
+    slug: 'luxe-salon',
+    ownerEmail: 'owner@luxesalon.com',
     ownerPhone: '+919833000001',
     ownerName: 'Natasha Kapoor',
     branchName: 'Flagship Lounge',
     staff: [
       {
-        email: 'siddharth@femmeluxe.com',
+        email: 'siddharth@luxesalon.com',
         phone: '+919833000002',
         name: 'Siddharth Roy',
         role: 'BRANCH_MANAGER',
@@ -276,7 +276,7 @@ const SEED_DATA: TenantSeedSpec[] = [
         endTime: '19:00:00',
       },
       {
-        email: 'tanvi@femmeluxe.com',
+        email: 'tanvi@luxesalon.com',
         phone: '+919833000003',
         name: 'Tanvi Mehta',
         role: 'RECEPTIONIST',
@@ -287,7 +287,7 @@ const SEED_DATA: TenantSeedSpec[] = [
         endTime: '18:00:00',
       },
       {
-        email: 'aarav@femmeluxe.com',
+        email: 'aarav@luxesalon.com',
         phone: '+919833000004',
         name: 'Aarav Mehra',
         role: 'PROFESSIONAL',
@@ -300,7 +300,7 @@ const SEED_DATA: TenantSeedSpec[] = [
         breakEnd: '14:30:00',
       },
       {
-        email: 'zoya@femmeluxe.com',
+        email: 'zoya@luxesalon.com',
         phone: '+919833000005',
         name: 'Zoya Khan',
         role: 'PROFESSIONAL',
@@ -313,7 +313,7 @@ const SEED_DATA: TenantSeedSpec[] = [
         breakEnd: '16:00:00',
       },
       {
-        email: 'meera@femmeluxe.com',
+        email: 'meera@luxesalon.com',
         phone: '+919833000006',
         name: 'Meera Nair',
         role: 'PROFESSIONAL',

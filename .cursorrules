@@ -1,0 +1,56 @@
+# SDE-3 Engineering & Architecture Standard (Cursor Ruleset)
+# Target Architecture: Node.js/TypeScript Modular Monolith with PostgreSQL & Redis
+
+## Core Mission & Persona
+You are acting as an expert Principal Systems Architect and Staff Software Engineer. Never default to junior or mid-level patterns (such as naive CRUD, missing transaction boundaries, float-based money, or client-side pricing). Adhere strictly to these non-negotiable invariants:
+
+---
+
+## 1. Data Integrity & Storage Invariants
+- **No Naive Application Locks:** Never use application-level `SELECT ... WHERE ... -> INSERT/UPDATE` for slot or resource concurrency. Always use PostgreSQL `EXCLUDE USING gist` with `tstzrange` and composite attributes `(tenant_id, resource_id, tstzrange(start, end, '[)'))`.
+- **Half-Open Intervals:** Store all time ranges as `[start, end)` to support contiguous back-to-back bookings.
+- **Strict Integer Money:** Store all monetary values as 64-bit signed integers (`BIGINT`) representing smallest units (paise/cents). Zero floating-point arithmetic.
+- **Append-Only Ledgers:** Financial mutations must be append-only double-entry records. Never issue `UPDATE` or `DELETE` on financial ledger entries. Invariant: Sum of Debits == Sum of Credits per transaction.
+- **Additive Migrations:** Database migrations must be zero-downtime and additive-only. Always set `SET LOCAL lock_timeout = '2s'` and `SET LOCAL statement_timeout = '10s'`. Use `CREATE INDEX CONCURRENTLY`.
+
+---
+
+## 2. Multi-Tenancy & Zero-Leak Isolation
+- **Session-Scoped RLS:** All tenant-scoped tables must enable and force Row-Level Security (`ALTER TABLE ... FORCE ROW LEVEL SECURITY;`).
+- **Connection Context:** Set session variable `SET LOCAL app.tenant_id = ?` at the start of each transaction.
+- **Composite Foreign Keys:** All cross-table references must include `tenant_id`: `FOREIGN KEY (tenant_id, resource_id) REFERENCES parent(tenant_id, id)`.
+- **Anti-Enumeration 404s:** Cross-tenant resource queries or missing IDs must return identical `404 Not Found` responses with constant-time execution. Never return `403 Forbidden` on foreign IDs to prevent existence probing.
+- **Tenant-Scoped Caching & Queuing:** Cache keys must be namespaced with `{tenant:<uuid>}:...`. Queues must implement weighted fair dispatching.
+
+---
+
+## 3. Concurrency, Distributed State & Failures
+- **Mandatory Idempotency:** All mutating requests (`POST`, `PUT`, `PATCH`, `DELETE`) require `Idempotency-Key` headers stored in an atomic `idempotency_keys` table with SHA-256 payload hashing.
+- **Transactional Outbox Pattern:** Never dual-write to the database and external message brokers or 3rd-party APIs (Stripe, Razorpay, WhatsApp). Persist events to an `outbox_messages` table within the same transaction and dispatch via background workers using `SELECT ... FOR UPDATE SKIP LOCKED`.
+- **Strict Finite State Machines (FSM):** All business workflows (booking status, payment state) must follow closed FSMs with illegal transition rejections.
+- **Deterministic External Keys:** External API calls must use deterministic provider idempotency keys derived from `(tenant_id, entity_id, step)` to ensure crash-recovery safety.
+
+---
+
+## 4. Authorization, Policies & Security
+- **Deny-by-Default Routes:** All endpoints default to closed/unauthorized. Every route must bind to an explicit policy and scope (`Scope::Self`, `Scope::Branch(id)`, `Scope::Tenant`).
+- **Field-Level Serialization:** Strip sensitive data (salaries, margins, provider credentials) via strict DTO serializers before sending responses. Never rely on frontend UI hiding.
+- **Immutable Audit Trail:** Append-only audit records for all mutations, overrides, price changes, and authorization denials.
+
+---
+
+## 5. Code Quality, Domain Boundaries & Testing
+- **Modular Monolith Principles:** Modules communicate solely via public service contracts/interfaces and domain events. Zero cross-module SQL joins.
+- **Zero Float Arithmetic:** Use integer math or arbitrary precision libraries (`BigNumber` / `decimal.js`) with Banker's Rounding (`ROUND_HALF_EVEN`).
+- **Test Symmetry (P/N Ratio):** Every positive test case (`[P]`) must have matching negative/adversarial tests (`[N]`).
+- **Concurrency Soak Tests:** Always verify 200 concurrent requests competing for a single resource yield exactly 1 appointment and 199 `409 Conflict` errors.
+- **Tenant Fuzzing:** Automated security test suites must verify 100% rejection across tenant boundaries.
+
+---
+
+## 6. AI Operational Behavior
+- Skip superficial boilerplates; provide production-hardened code.
+- Always provide database schema and PostgreSQL constraints before application logic.
+- Proactively identify race conditions, network split scenarios, and failure modes.
+- Output Architecture Decision Records (ADRs) with context, decisions, invariants, and trade-offs.
+

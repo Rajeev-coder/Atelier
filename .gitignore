@@ -27,6 +27,7 @@ coverage/
 .nyc_output
 
 # IDE & OS
+.vscode/
 .DS_Store
 Thumbs.db
 .idea/
@@ -39,4 +40,9 @@ Thumbs.db
 # Temporary / Scratch
 tmp/
 temp/
+push_to_github.bat
+
+# Private Interview & Architecture Docs (Not pushed to remote)
+docs/
+
 

@@ -151,7 +151,7 @@ export class RazorpayAdapter implements IPaymentGateway {
   public async createIntent(config: TenantPaymentConfig, input: CreateIntentInput): Promise<IntentResult> {
     const orderId = `order_${crypto.randomBytes(10).toString('hex')}`;
     const amountInRupees = (Number(input.amountPaise) / 100).toFixed(2);
-    const upiIntentString = `upi://pay?pa=salon.payments@okhdfcbank&pn=SalonPlatform&am=${amountInRupees}&cu=INR&tr=${orderId}`;
+    const upiIntentString = `upi://pay?pa=service.payments@okhdfcbank&pn=ServicePlatform&am=${amountInRupees}&cu=INR&tr=${orderId}`;
 
     return {
       gateway: 'RAZORPAY',

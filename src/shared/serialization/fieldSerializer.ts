@@ -4,7 +4,7 @@ import { RoleType } from '../types/index.js';
 export class FieldSerializer {
   /**
    * Serializes a staff entity or list of staff entities, stripping sensitive compensation fields
-   * for roles without explicit compensation view permissions (e.g., RECEPTIONIST, PROFESSIONAL).
+   * for roles without explicit compensation view permissions (e.g., FRONT_DESK_OPERATOR, PROFESSIONAL).
    */
   public static serializeStaff<T extends Record<string, unknown>>(
     data: T | T[],

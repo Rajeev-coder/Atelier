@@ -10,7 +10,7 @@ export class DatabaseClient {
   public static initialize(connectionString?: string): pg.Pool {
     if (!this.pool) {
       this.pool = new Pool({
-        connectionString: connectionString || process.env.DATABASE_URL || 'postgres://postgres:postgres@localhost:5432/salon_platform',
+        connectionString: connectionString || process.env.DATABASE_URL || 'postgres://postgres:postgres@localhost:5432/service_platform',
         max: 20,
         idleTimeoutMillis: 30000,
         connectionTimeoutMillis: 5000,

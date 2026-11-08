@@ -58,12 +58,22 @@ const ROLE_PERMISSIONS: Record<RoleType, Set<ActionName>> = {
     'eligibility:manage',
     'schedule:manage',
   ]),
+  FRONT_DESK_OPERATOR: new Set<ActionName>([
+    'branch:view',
+    'service:view',
+    'resource:view',
+  ]),
   RECEPTIONIST: new Set<ActionName>([
     'branch:view',
     'service:view',
     'resource:view',
   ]),
   PROFESSIONAL: new Set<ActionName>([
+    'branch:view',
+    'service:view',
+    'resource:view',
+  ]),
+  SERVICE_PROVIDER: new Set<ActionName>([
     'branch:view',
     'service:view',
     'resource:view',

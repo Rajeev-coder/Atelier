@@ -1,9 +1,9 @@
 @echo off
 setlocal
-title Atelier - Luxe Salon and Spa Platform
+title Atelier - Multi-Tenant Service Business Platform
 
 echo ======================================================================
-echo    ATELIER - LUXE SALON AND SPA PLATFORM
+echo    ATELIER - MULTI-TENANT SERVICE BUSINESS PLATFORM
 echo    Next-Gen Web3 Glass Console and Storefront
 echo ======================================================================
 echo.
@@ -12,7 +12,7 @@ REM 1. Navigate to script directory
 cd /d "%~dp0"
 
 REM 2. Ensure Node.js and NVM paths are present
-set "PATH=C:\nvm4w\nodejs;C:\Users\rajee\AppData\Local\nvm\v22.19.0;%PATH%"
+set "PATH=C:\nvm4w\nodejs;%LOCALAPPDATA%\nvm\v22.19.0;%NVM_HOME%;%NVM_SYMLINK%;%PATH%"
 
 REM 3. Check for Node.js
 where node >nul 2>nul

@@ -27,7 +27,7 @@ export class WebhookService {
    * 1. Signature verification against tenant secrets.
    * 2. Atomic event deduplication in payment_events.
    * 3. State machine validation (rejects out-of-order transitions).
-   * 4. Double-entry ledger generation (Credit Salon Revenue, Debit Gateway Clearing).
+   * 4. Double-entry ledger generation (Credit Operating Revenue, Debit Gateway Clearing).
    * 5. Late-payment reconciliation for expired holds.
    */
   public static async processWebhook(
@@ -157,13 +157,13 @@ export class WebhookService {
 
       // Append-Only Balanced Double-Entry:
       // Line 1: Debit Gateway Clearing (Asset +)
-      // Line 2: Credit Salon Revenue (Revenue +)
+      // Line 2: Credit Operating Revenue (Revenue +)
       await client.query(
         `INSERT INTO ledger_entries (
           tenant_id, appointment_id, payment_id, entry_type, account, amount_paise, currency, reason
         ) VALUES 
           ($1, $2, $3, 'DEBIT', 'GATEWAY_CLEARING', $4, $5, 'Online payment captured'),
-          ($1, $2, $3, 'CREDIT', 'SALON_REVENUE', $4, $5, 'Online payment captured');`,
+          ($1, $2, $3, 'CREDIT', 'OPERATING_REVENUE', $4, $5, 'Online payment captured');`,
         [tenantId, payment.appointment_id, payment.id, eventData.amountPaise.toString(), eventData.currency]
       );
 

@@ -3,18 +3,18 @@ version: '3.8'
 services:
   postgres:
     image: postgres:16-alpine
-    container_name: salon-postgres
+    container_name: service-postgres
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: salon_platform
+      POSTGRES_DB: service_platform
     ports:
       - "5432:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
       - ./db/migrations:/docker-entrypoint-initdb.d:ro
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres -d salon_platform"]
+      test: ["CMD-SHELL", "pg_isready -U postgres -d service_platform"]
       interval: 5s
       timeout: 5s
       retries: 5

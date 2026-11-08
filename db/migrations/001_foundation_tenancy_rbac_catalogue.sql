@@ -61,9 +61,11 @@ CREATE TABLE IF NOT EXISTS roles (
 
 INSERT INTO roles (id, name, description) VALUES
     ('PLATFORM_ADMIN', 'Platform Administrator', 'Provisions tenants and monitors platform health'),
-    ('OWNER', 'Salon Owner', 'Full control over salon settings, staff, services, and billing'),
+    ('OWNER', 'Platform Owner', 'Full control over organization settings, staff, services, and billing'),
     ('BRANCH_MANAGER', 'Branch Manager', 'Manages a specific branch: operations, overrides, local staff'),
-    ('RECEPTIONIST', 'Receptionist', 'Front desk: appointments, customer check-in, point-of-sale collections'),
+    ('FRONT_DESK_OPERATOR', 'Front Desk Operator', 'Front desk: appointments, customer check-in, point-of-sale collections'),
+    ('RECEPTIONIST', 'Front Desk Operator', 'Front desk: appointments, customer check-in, point-of-sale collections'),
+    ('SERVICE_PROVIDER', 'Service Provider', 'Performs services, views personal calendar and schedule'),
     ('PROFESSIONAL', 'Service Professional', 'Performs services, views personal calendar and schedule')
 ON CONFLICT (id) DO NOTHING;
 

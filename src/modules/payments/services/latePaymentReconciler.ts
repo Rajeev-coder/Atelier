@@ -68,13 +68,13 @@ export class LatePaymentReconciler {
         [eventData.gatewayPaymentId, tenantId, paymentRecord.id]
       );
 
-      // Balanced Double-Entry: Credit Salon Revenue, Debit Gateway Clearing
+      // Balanced Double-Entry: Credit Operating Revenue, Debit Gateway Clearing
       await client.query(
         `INSERT INTO ledger_entries (
           tenant_id, appointment_id, payment_id, entry_type, account, amount_paise, currency, reason
         ) VALUES 
           ($1, $2, $3, 'DEBIT', 'GATEWAY_CLEARING', $4, $5, 'Late payment received - slot revived'),
-          ($1, $2, $3, 'CREDIT', 'SALON_REVENUE', $4, $5, 'Late payment received - slot revived');`,
+          ($1, $2, $3, 'CREDIT', 'OPERATING_REVENUE', $4, $5, 'Late payment received - slot revived');`,
         [tenantId, appointmentId, paymentRecord.id, eventData.amountPaise.toString(), eventData.currency]
       );
 

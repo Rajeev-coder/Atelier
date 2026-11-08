@@ -90,7 +90,7 @@ export class PettyCashService {
 
   /**
    * Creates a provisional petty cash voucher (e.g. tea/refreshments, emergency supplies).
-   * Callable by Receptionist or Branch Manager during an active OPEN session.
+   * Callable by Front Desk Operator or Branch Manager during an active OPEN session.
    */
   public static async createVoucher(
     client: pg.PoolClient,
@@ -191,7 +191,7 @@ export class PettyCashService {
 
   /**
    * Reconciles and closes a cash drawer session.
-   * Invariant: Callable strictly by BRANCH_MANAGER or OWNER. Receptionist throws AuthorizationDeniedError.
+   * Invariant: Callable strictly by BRANCH_MANAGER or OWNER. FRONT_DESK_OPERATOR throws AuthorizationDeniedError.
    */
   public static async reconcileSession(
     client: pg.PoolClient,

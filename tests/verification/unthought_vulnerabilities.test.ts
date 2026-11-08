@@ -330,9 +330,9 @@ describe('Unthought-Of Production Vulnerability Tests (UNTHOUGHT-01 → UNTHOUGH
 
       // Each tender creates a balanced DEBIT + CREDIT pair
       const cashDebit  = cashPaise; // DEBIT: CASH_DRAWER
-      const cashCredit = cashPaise; // CREDIT: SALON_REVENUE
+      const cashCredit = cashPaise; // CREDIT: OPERATING_REVENUE
       const upiDebit   = upiPaise;  // DEBIT: GATEWAY_CLEARING
-      const upiCredit  = upiPaise;  // CREDIT: SALON_REVENUE
+      const upiCredit  = upiPaise;  // CREDIT: OPERATING_REVENUE
 
       const totalDebits  = cashDebit  + upiDebit;
       const totalCredits = cashCredit + upiCredit;

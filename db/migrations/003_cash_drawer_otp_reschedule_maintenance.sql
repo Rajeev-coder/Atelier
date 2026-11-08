@@ -12,7 +12,7 @@ SET LOCAL statement_timeout = '10s';
 CREATE EXTENSION IF NOT EXISTS "btree_gist";
 
 -- ============================================================================
--- 1. CASH DRAWER SESSIONS & PETTY CASH VOUCHERS ("KACHA KHATA")
+-- 1. CASH DRAWER SESSIONS & PETTY CASH VOUCHER SYSTEM
 -- ============================================================================
 
 CREATE TABLE IF NOT EXISTS cash_drawer_sessions (

@@ -77,7 +77,7 @@ CREATE TABLE IF NOT EXISTS ledger_entries (
     payment_id UUID,
     entry_type VARCHAR(10) NOT NULL CHECK (entry_type IN ('DEBIT', 'CREDIT')),
     account VARCHAR(50) NOT NULL CHECK (
-        account IN ('ACCOUNTS_RECEIVABLE', 'CASH_DRAWER', 'GATEWAY_CLEARING', 'CUSTOMER_REFUNDS', 'SALON_REVENUE')
+        account IN ('ACCOUNTS_RECEIVABLE', 'CASH_DRAWER', 'GATEWAY_CLEARING', 'CUSTOMER_REFUNDS', 'OPERATING_REVENUE')
     ),
     amount_paise BIGINT NOT NULL CHECK (amount_paise > 0),
     currency VARCHAR(3) NOT NULL DEFAULT 'INR',

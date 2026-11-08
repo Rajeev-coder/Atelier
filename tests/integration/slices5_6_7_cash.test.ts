@@ -38,9 +38,9 @@ describe('Slices 5, 6, 7 & Cash Drawer Integration Suite', () => {
   let gymManagerId: UserId;
   let gymReceptionistId: UserId;
 
-  let salonTenantId: TenantId;
-  let salonBranchId: BranchId;
-  let salonStylistId: UserId;
+  let orgTenantId: TenantId;
+  let orgBranchId: BranchId;
+  let orgProviderId: UserId;
   let balayageServiceId: ServiceId;
   let haircutServiceId: ServiceId;
   let stylingChairId: ResourceId;
@@ -65,7 +65,7 @@ describe('Slices 5, 6, 7 & Cash Drawer Integration Suite', () => {
     }
   });
 
-  describe('Scenario 1: Front-Desk Cash Drawer & Petty Cash Vouchers ("Kacha Khata")', () => {
+  describe('Scenario 1: Front-Desk Cash Drawer & Petty Cash Voucher System', () => {
     it('manages daily drawer sessions, handles vouchers, denies non-manager reconciliation, and balances perfectly', async () => {
       if (!isDbAvailable) {
         expect(PettyCashService.openDrawerSession).toBeDefined();
@@ -233,29 +233,29 @@ describe('Slices 5, 6, 7 & Cash Drawer Integration Suite', () => {
         return;
       }
 
-      // Provision Salon Tenant
-      const salonProv = await TenantProvisioningService.provisionTenant({
-        provisioningKey: 'online-salon-001',
+      // Provision Service Tenant
+      const serviceProv = await TenantProvisioningService.provisionTenant({
+        provisioningKey: 'online-service-001',
         name: 'Femme Luxe Online Lounge',
         slug: 'femme-luxe',
         ownerEmail: 'owner@femmeluxeonline.com',
         ownerPhone: '+919833777001',
         ownerName: 'Natasha Online',
       });
-      salonTenantId = salonProv.tenantId;
-      salonBranchId = salonProv.branchId;
+      orgTenantId = serviceProv.tenantId;
+      orgBranchId = serviceProv.branchId;
 
-      await DatabaseClient.withTenantTransaction(salonTenantId, async (client) => {
-        // Setup Stylist
+      await DatabaseClient.withTenantTransaction(orgTenantId, async (client) => {
+        // Setup Provider
         const uRes = await client.query<{ id: string }>(
           `INSERT INTO users (email, phone_e164, name, password_hash)
-           VALUES ('aarav@femmeluxeonline.com', '+919833777002', 'Aarav Master Stylist', 'HASH')
+           VALUES ('aarav@femmeluxeonline.com', '+919833777002', 'Aarav Master Specialist', 'HASH')
            RETURNING id;`
         );
-        salonStylistId = asUserId(uRes.rows[0].id);
+        orgProviderId = asUserId(uRes.rows[0].id);
 
         // Balayage Service: 120 min, ₹5,500 (550,000 paise)
-        const sRes = await CatalogueEligibilityService.createService(client, salonTenantId, {
+        const sRes = await CatalogueEligibilityService.createService(client, orgTenantId, {
           name: 'Balayage & Olaplex',
           durationMinutes: 120,
           basePricePaise: toPaise(550000), // ₹5,500
@@ -263,20 +263,20 @@ describe('Slices 5, 6, 7 & Cash Drawer Integration Suite', () => {
         balayageServiceId = sRes.serviceId;
 
         // Resource: Styling Chair 1
-        const rRes = await CatalogueEligibilityService.createResource(client, salonTenantId, {
-          branchId: salonBranchId,
+        const rRes = await CatalogueEligibilityService.createResource(client, orgTenantId, {
+          branchId: orgBranchId,
           name: 'Styling Chair 1',
           resourceType: 'CHAIR',
         });
         stylingChairId = rRes.resourceId;
 
-        await CatalogueEligibilityService.setEligibility(client, salonTenantId, balayageServiceId, salonStylistId, true);
+        await CatalogueEligibilityService.setEligibility(client, orgTenantId, balayageServiceId, orgProviderId, true);
       });
 
-      // 1. Subdomain Resolution: 'femme-luxe.platform.test' -> salonTenantId
-      await DatabaseClient.withTenantTransaction(salonTenantId, async (client) => {
+      // 1. Subdomain Resolution: 'femme-luxe.platform.test' -> orgTenantId
+      await DatabaseClient.withTenantTransaction(orgTenantId, async (client) => {
         const resolved = await PublicBookingService.resolveTenantByHost(client, 'femme-luxe.platform.test');
-        expect(resolved.tenantId).toBe(salonTenantId);
+        expect(resolved.tenantId).toBe(orgTenantId);
         expect(resolved.slug).toBe('femme-luxe');
       });
 
@@ -285,36 +285,36 @@ describe('Slices 5, 6, 7 & Cash Drawer Integration Suite', () => {
       let challengeId: string;
       let validCode: string;
 
-      await DatabaseClient.withTenantTransaction(salonTenantId, async (client) => {
-        const otpReq = await OtpService.requestOtp(client, salonTenantId, guestPhone);
+      await DatabaseClient.withTenantTransaction(orgTenantId, async (client) => {
+        const otpReq = await OtpService.requestOtp(client, orgTenantId, guestPhone);
         challengeId = otpReq.challengeId;
         validCode = otpReq.rawCodeForTest!;
         expect(challengeId).toBeDefined();
       });
 
       // Wrong OTP attempts: Verify lockout after threshold
-      await DatabaseClient.withTenantTransaction(salonTenantId, async (client) => {
+      await DatabaseClient.withTenantTransaction(orgTenantId, async (client) => {
         // Send wrong codes
-        await expect(OtpService.verifyOtp(client, salonTenantId, challengeId, '000000')).rejects.toThrow(
+        await expect(OtpService.verifyOtp(client, orgTenantId, challengeId, '000000')).rejects.toThrow(
           InvariantViolationError
         );
       });
 
       // Valid OTP verification
       let verifiedToken: string;
-      await DatabaseClient.withTenantTransaction(salonTenantId, async (client) => {
-        const verifyRes = await OtpService.verifyOtp(client, salonTenantId, challengeId, validCode);
+      await DatabaseClient.withTenantTransaction(orgTenantId, async (client) => {
+        const verifyRes = await OtpService.verifyOtp(client, orgTenantId, challengeId, validCode);
         expect(verifyRes.verified).toBe(true);
         verifiedToken = verifyRes.verificationToken;
       });
 
       // 3. Online Guest Booking with Tampered Price:
       // Client maliciously sends `tamperedPricePaise = '10000'` (₹100) instead of ₹5,500
-      await DatabaseClient.withTenantTransaction(salonTenantId, async (client) => {
-        const booking = await PublicBookingService.createOnlineBooking(client, salonTenantId, {
-          branchId: salonBranchId,
+      await DatabaseClient.withTenantTransaction(orgTenantId, async (client) => {
+        const booking = await PublicBookingService.createOnlineBooking(client, orgTenantId, {
+          branchId: orgBranchId,
           serviceId: balayageServiceId,
-          professionalId: salonStylistId,
+          professionalId: orgProviderId,
           customerPhone: guestPhone,
           customerFirstName: 'Priya',
           customerLastName: 'Sharma',
@@ -344,7 +344,7 @@ describe('Slices 5, 6, 7 & Cash Drawer Integration Suite', () => {
       const slot2Time = '2026-11-16T14:00:00.000Z';
       const targetFreeTime = '2026-11-16T18:00:00.000Z';
 
-      await DatabaseClient.withTenantTransaction(salonTenantId, async (client) => {
+      await DatabaseClient.withTenantTransaction(orgTenantId, async (client) => {
         // Create Appointment 1 (10:00 - 12:00)
         const a1 = await client.query<{ id: string }>(
           `INSERT INTO appointments (
@@ -352,7 +352,7 @@ describe('Slices 5, 6, 7 & Cash Drawer Integration Suite', () => {
             start_time, end_time, status, locked_price_paise
           ) VALUES ($1, $2, gen_random_uuid(), $3, $4, $5, '2026-11-16T12:00:00.000Z', 'CONFIRMED', 550000)
           RETURNING id;`,
-          [salonTenantId, salonBranchId, balayageServiceId, salonStylistId, originalTime]
+          [orgTenantId, orgBranchId, balayageServiceId, orgProviderId, originalTime]
         );
         appt1Id = a1.rows[0].id;
 
@@ -363,32 +363,32 @@ describe('Slices 5, 6, 7 & Cash Drawer Integration Suite', () => {
             start_time, end_time, status, locked_price_paise
           ) VALUES ($1, $2, gen_random_uuid(), $3, $4, $5, '2026-11-16T16:00:00.000Z', 'CONFIRMED', 550000)
           RETURNING id;`,
-          [salonTenantId, salonBranchId, balayageServiceId, salonStylistId, slot2Time]
+          [orgTenantId, orgBranchId, balayageServiceId, orgProviderId, slot2Time]
         );
         appt2Id = a2.rows[0].id;
       });
 
       // 1. Reschedule Appointment 1 into Occupied Slot 2 (14:00) -> MUST FAIL with ConcurrencyConflictError (409)
       await expect(
-        DatabaseClient.withTenantTransaction(salonTenantId, async (client) => {
-          return RescheduleAndCancellationService.atomicReschedule(client, salonTenantId, appt1Id, slot2Time);
+        DatabaseClient.withTenantTransaction(orgTenantId, async (client) => {
+          return RescheduleAndCancellationService.atomicReschedule(client, orgTenantId, appt1Id, slot2Time);
         })
       ).rejects.toThrow(ConcurrencyConflictError);
 
       // Verify Appointment 1 remains unchanged at originalTime (10:00)
-      await DatabaseClient.withTenantTransaction(salonTenantId, async (client) => {
+      await DatabaseClient.withTenantTransaction(orgTenantId, async (client) => {
         const check = await client.query<{ start_time: Date }>(
           'SELECT start_time FROM appointments WHERE tenant_id = $1 AND id = $2;',
-          [salonTenantId, appt1Id]
+          [orgTenantId, appt1Id]
         );
         expect(new Date(check.rows[0].start_time).toISOString()).toBe(originalTime);
       });
 
       // 2. Reschedule Appointment 1 into targetFreeTime (18:00) -> SUCCEEDS ATOMICALLY
-      await DatabaseClient.withTenantTransaction(salonTenantId, async (client) => {
+      await DatabaseClient.withTenantTransaction(orgTenantId, async (client) => {
         const res = await RescheduleAndCancellationService.atomicReschedule(
           client,
-          salonTenantId,
+          orgTenantId,
           appt1Id,
           targetFreeTime
         );
@@ -397,10 +397,10 @@ describe('Slices 5, 6, 7 & Cash Drawer Integration Suite', () => {
       });
 
       // 3. Policy-Based Cancellation Test (> 24 hours out -> 100% refund)
-      await DatabaseClient.withTenantTransaction(salonTenantId, async (client) => {
+      await DatabaseClient.withTenantTransaction(orgTenantId, async (client) => {
         const cancelRes = await RescheduleAndCancellationService.cancelAppointment(
           client,
-          salonTenantId,
+          orgTenantId,
           appt1Id,
           'Customer travel plans changed'
         );
@@ -413,7 +413,7 @@ describe('Slices 5, 6, 7 & Cash Drawer Integration Suite', () => {
         // Idempotent re-cancellation: returns existing cancelled state without creating second refund
         const replayRes = await RescheduleAndCancellationService.cancelAppointment(
           client,
-          salonTenantId,
+          orgTenantId,
           appt1Id,
           'Duplicate click'
         );
@@ -429,9 +429,9 @@ describe('Slices 5, 6, 7 & Cash Drawer Integration Suite', () => {
         return;
       }
 
-      await DatabaseClient.withTenantTransaction(salonTenantId, async (client) => {
+      await DatabaseClient.withTenantTransaction(orgTenantId, async (client) => {
         // Setup Haircut Service (only requires CHAIR)
-        const sRes = await CatalogueEligibilityService.createService(client, salonTenantId, {
+        const sRes = await CatalogueEligibilityService.createService(client, orgTenantId, {
           name: 'Standard Haircut',
           durationMinutes: 45,
           basePricePaise: toPaise(120000),
@@ -441,12 +441,12 @@ describe('Slices 5, 6, 7 & Cash Drawer Integration Suite', () => {
         await client.query(
           `INSERT INTO service_resource_requirements (tenant_id, service_id, resource_type, quantity)
            VALUES ($1, $2, 'CHAIR', 1);`,
-          [salonTenantId, haircutServiceId]
+          [orgTenantId, haircutServiceId]
         );
 
         // Setup Washing Station Resource
-        const rRes = await CatalogueEligibilityService.createResource(client, salonTenantId, {
-          branchId: salonBranchId,
+        const rRes = await CatalogueEligibilityService.createResource(client, orgTenantId, {
+          branchId: orgBranchId,
           name: 'Washing Station A',
           resourceType: 'CHAIR',
         });
@@ -457,34 +457,34 @@ describe('Slices 5, 6, 7 & Cash Drawer Integration Suite', () => {
           `INSERT INTO service_resource_requirements (tenant_id, service_id, resource_type, quantity)
            VALUES ($1, $2, 'CHAIR', 2)
            ON CONFLICT DO NOTHING;`,
-          [salonTenantId, balayageServiceId]
+          [orgTenantId, balayageServiceId]
         );
 
-        // Stylist working on Monday 2026-11-23 from 10:00 to 14:00
+        // Specialist working on Monday 2026-11-23 from 10:00 to 14:00
         await CatalogueEligibilityService.setWorkingHours(
           client,
-          salonTenantId,
-          salonBranchId,
-          salonStylistId,
+          orgTenantId,
+          orgBranchId,
+          orgProviderId,
           1, // Monday
           '10:00:00',
           '14:00:00'
         );
-        await CatalogueEligibilityService.setEligibility(client, salonTenantId, haircutServiceId, salonStylistId, true);
+        await CatalogueEligibilityService.setEligibility(client, orgTenantId, haircutServiceId, orgProviderId, true);
       });
 
       const managerActor: ActorContext = {
-        userId: salonStylistId,
+        userId: orgProviderId,
         email: 'owner@femmeluxeonline.com',
         isPlatformAdmin: false,
-        tenantId: salonTenantId,
+        tenantId: orgTenantId,
         roles: [{ role: 'OWNER', scope: { type: 'TENANT' } }],
       };
 
       // 1. Create Maintenance Block on Washing Station A (10:00 to 12:00)
-      await DatabaseClient.withTenantTransaction(salonTenantId, async (client) => {
+      await DatabaseClient.withTenantTransaction(orgTenantId, async (client) => {
         const block = await MaintenanceBlockService.createMaintenanceBlock(client, managerActor, {
-          branchId: salonBranchId,
+          branchId: orgBranchId,
           resourceId: washingStationId,
           startTime: '2026-11-23T10:00:00.000Z',
           endTime: '2026-11-23T12:00:00.000Z',
@@ -495,10 +495,10 @@ describe('Slices 5, 6, 7 & Cash Drawer Integration Suite', () => {
 
       // 2. Query Availability for Balayage (which needs Washing Station):
       // Must be unavailable during 10:00 - 12:00
-      await DatabaseClient.withTenantTransaction(salonTenantId, async (client) => {
+      await DatabaseClient.withTenantTransaction(orgTenantId, async (client) => {
         const balayageSlots = await AvailabilityEngine.computeAvailableSlots(client, {
-          tenantId: salonTenantId,
-          branchId: salonBranchId,
+          tenantId: orgTenantId,
+          branchId: orgBranchId,
           serviceId: balayageServiceId,
           date: '2026-11-23',
         });
@@ -510,8 +510,8 @@ describe('Slices 5, 6, 7 & Cash Drawer Integration Suite', () => {
         // 3. Query Availability for Standard Haircut (only needs Styling Chair):
         // Styling Chair 1 is free, so Haircut remains AVAILABLE!
         const haircutSlots = await AvailabilityEngine.computeAvailableSlots(client, {
-          tenantId: salonTenantId,
-          branchId: salonBranchId,
+          tenantId: orgTenantId,
+          branchId: orgBranchId,
           serviceId: haircutServiceId,
           date: '2026-11-23',
         });

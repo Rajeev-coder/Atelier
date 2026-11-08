@@ -1,4 +1,4 @@
-# Atelier: Multi-Tenant Salon Operations & Booking Engine
+# Atelier: Multi-Tenant Distributed Reservation & Operations Engine
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 [![TypeScript: 5.9](https://img.shields.io/badge/TypeScript-5.9-3178C6.svg)](https://www.typescriptlang.org/)
@@ -6,9 +6,9 @@
 [![PostgreSQL: 16](https://img.shields.io/badge/PostgreSQL-16-336791.svg)](https://www.postgresql.org/)
 [![Tests: 72 Passed](https://img.shields.io/badge/Tests-72%20Passed-brightgreen.svg)](tests/)
 
-**Atelier** is an end-to-end, multi-tenant operations, scheduling, and payment backend built for salons, wellness clinics, and appointment-driven businesses. 
+**Atelier** is an end-to-end, multi-tenant operations, scheduling, and payment backend built for service enterprises, wellness centers, athletic clubs, and appointment-driven platforms. 
 
-Most booking systems break down in real-world salon environments: stylists get double-booked during walk-in rushes, payments desynchronize when webhooks arrive out of order, front desks struggle with out-of-pocket cash expenses, and client notifications get lost or duplicated during network drops. 
+Most booking systems break down in real-world service environments: service providers get double-booked during walk-in rushes, payments desynchronize when webhooks arrive out of order, front desks struggle with out-of-pocket cash expenses, and client notifications get lost or duplicated during network drops. 
 
 Atelier solves these challenges with **PostgreSQL Row-Level Security (RLS)**, **GiST temporal range exclusion constraints**, **append-only double-entry financial ledgers**, and the **Transactional Outbox pattern**.
 
@@ -18,11 +18,11 @@ Atelier solves these challenges with **PostgreSQL Row-Level Security (RLS)**, **
 
 | Challenge in Traditional Booking Systems | How Atelier Solves It |
 | :--- | :--- |
-| **Stylist & Resource Double-Booking:** Two customers simultaneously book the same stylist or treatment room at 10:00 AM. Naive `SELECT -> IF free -> INSERT` checks fail under race conditions. | **PostgreSQL GiST Range Exclusion (`tstzrange`):** The database engine enforces physical exclusion. Overlapping reservations are rejected at the storage layer (`23P01`), eliminating double-bookings without complex distributed locks. |
-| **Multi-Resource Dependencies:** A Balayage treatment requires 1 Stylist + 1 Styling Chair (60m) + 1 Hair Washing Station (30m). Booking just the stylist leads to floor deadlocks. | **Joint Multi-Resource Engine:** The availability engine verifies both staff shifts and required physical assets, including facility maintenance blocks, before issuing a hold. |
-| **Data Leaks Across Salons:** Salon A accesses Salon B's client list or services via predictable IDs or missing `WHERE tenant_id` clauses. | **Session-Scoped Row-Level Security (RLS):** Queries execute within isolated transactions setting `SET LOCAL app.tenant_id = $1`. Relational queries missing tenant context return zero rows. |
+| **Service Provider & Resource Double-Booking:** Two customers simultaneously book the same service provider or treatment room at 10:00 AM. Naive `SELECT -> IF free -> INSERT` checks fail under race conditions. | **PostgreSQL GiST Range Exclusion (`tstzrange`):** The database engine enforces physical exclusion. Overlapping reservations are rejected at the storage layer (`23P01`), eliminating double-bookings without complex distributed locks. |
+| **Multi-Resource Dependencies:** A signature treatment requires 1 Service Provider + 1 Primary Station (60m) + 1 Support Facility (30m). Booking just the service provider leads to floor deadlocks. | **Joint Multi-Resource Engine:** The availability engine verifies both staff shifts and required physical assets, including facility maintenance blocks, before issuing a hold. |
+| **Data Leaks Across Organizations:** Organization A accesses Organization B's client list or services via predictable IDs or missing `WHERE tenant_id` clauses. | **Session-Scoped Row-Level Security (RLS):** Queries execute within isolated transactions setting `SET LOCAL app.tenant_id = $1`. Relational queries missing tenant context return zero rows. |
 | **Dual-Write Flaws (Lost/Duplicate WhatsApps):** The database commits an appointment, but the server crashes before sending the WhatsApp confirmation (or vice versa). | **Transactional Outbox Pattern:** Booking inserts and notification events commit in the exact same DB transaction. A background worker drains the outbox with `FOR UPDATE SKIP LOCKED`. |
-| **Kacha Khata / Out-of-Pocket Drawer Cash:** Front-desk receptionists buy milk, tea, or cleaning supplies with cash from the drawer, corrupting revenue reporting. | **Cash Drawer Sessions & Petty Cash Vouchers:** Shift custody is decoupled from revenue ledgers. Petty cash vouchers are tracked as provisional expenses reviewed during end-of-shift drawer reconciliation. |
+| **Petty Cash Voucher System / Out-of-Pocket Drawer Cash:** Front-desk operators buy supplies with cash from the drawer, corrupting revenue reporting. | **Cash Drawer Sessions & Petty Cash Vouchers:** Shift custody is decoupled from revenue ledgers. Petty cash vouchers are tracked as provisional expenses reviewed during end-of-shift drawer reconciliation. |
 | **Financial Rounding & Modification Leaks:** Float math loses cents/paise over thousands of transactions, and balance records are edited in-place, ruining audit trails. | **Integer-Only Double-Entry Ledgers:** All currency is tracked in integer paise (`BIGINT`). Storage-level triggers block SQL `UPDATE` and `DELETE` on ledgers; adjustments require balanced reversing entries. |
 
 ---
@@ -51,9 +51,9 @@ Atelier solves these challenges with **PostgreSQL Row-Level Security (RLS)**, **
 
 ### 3. 4-Axis Catalogue & Dynamic Pricing
 Most booking systems couple staff seniority to service prices. Atelier decouples the domain into four independent axes:
-1. **Staff Experience Tier:** Seniority title (Junior, Senior, Master Stylist).
+1. **Staff Experience Tier:** Seniority title (Junior, Senior, Master Professional).
 2. **Service Certification Eligibility:** A many-to-many matrix defining which professionals are certified to perform which services.
-3. **Customer Pricing:** Base service prices with optional tier/stylist overrides, calculated server-side.
+3. **Customer Pricing:** Base service prices with optional tier/provider overrides, calculated server-side.
 4. **Staff Compensation:** Internal payroll contracts (base salary, commission basis points, or flat cuts), shielded from front-desk staff via field-level serialization filters.
 
 ### 4. Payments, Split Tender & Append-Only Ledgers
@@ -78,7 +78,7 @@ Most booking systems couple staff seniority to service prices. Atelier decouples
 Knowing what **not** to build is just as critical as knowing what to build. We deliberately avoided several common anti-patterns:
 
 ### 1. No External Distributed Lock Manager (Redis / Redlock)
-* **Why We Avoided It:** Using Redis for 5-minute reservation locks introduces split-brain failure modes and Martin Kleppmann's GC pause lock-expiry hazard (where an application pause causes the lock TTL to expire while the worker is mid-flight, allowing another thread to acquire the lock and write duplicate appointments). Additionally, multi-resource reservations (Stylist + Chair + Sink) create circular distributed deadlocks.
+* **Why We Avoided It:** Using Redis for 5-minute reservation locks introduces split-brain failure modes and Martin Kleppmann's GC pause lock-expiry hazard (where an application pause causes the lock TTL to expire while the worker is mid-flight, allowing another thread to acquire the lock and write duplicate appointments). Additionally, multi-resource reservations (Provider + Primary Unit + Facility) create circular distributed deadlocks.
 * **What We Did Instead:** We enforce exclusion directly at the ACID database boundary using PostgreSQL `btree_gist` temporal range exclusion constraints (`tstzrange`). Correctness is guaranteed with sub-millisecond serialization latency and zero external lock dependencies.
 
 ### 2. No Synchronous External RPCs in Core Request Cycles
@@ -98,7 +98,7 @@ Knowing what **not** to build is just as critical as knowing what to build. We d
 * **What We Did Instead:** All money is tracked in integer paise (`BIGINT`). Database triggers physically block SQL `UPDATE` and `DELETE` on `ledger_entries`. Accounting adjustments are made exclusively through immutable reversing entries where $\sum \text{Debits} \equiv \sum \text{Credits}$.
 
 ### 6. No Stateful WebSockets for Booking Calendars
-* **Why We Avoided It:** Salon bookings happen on human operational tempos (seconds to minutes), not sub-millisecond high-frequency trading. Stateful WebSocket connections introduce connection pool exhaustion, cluster coordination complexity, and memory bloat on mobile networks without solving the underlying slot collision race.
+* **Why We Avoided It:** Reservation bookings happen on human operational tempos (seconds to minutes), not sub-millisecond high-frequency trading. Stateful WebSocket connections introduce connection pool exhaustion, cluster coordination complexity, and memory bloat on mobile networks without solving the underlying slot collision race.
 * **What We Did Instead:** Stateless HTTP with fast, indexed range queries, optimistic short-lived slot holds with TTL (`slot_holds`), and deterministic exclusion at commit time.
 
 ---
@@ -143,7 +143,7 @@ Knowing what **not** to build is just as critical as knowing what to build. We d
 │                             # and Unthought Vulnerabilities
 └── tools/
     ├── migrate.ts            # Migration execution runner
-    └── seed.ts               # Multi-tenant realistic vertical seeder (Gym, Yoga, Salon)
+    └── seed.ts               # Multi-tenant realistic vertical seeder (Athletics, Wellness, Aesthetics)
 ```
 
 ---

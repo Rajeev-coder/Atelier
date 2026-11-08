@@ -22,7 +22,7 @@ interface SeededStaff {
   email: string;
   phone: string;
   name: string;
-  role: 'BRANCH_MANAGER' | 'RECEPTIONIST' | 'PROFESSIONAL';
+  role: 'BRANCH_MANAGER' | 'FRONT_DESK_OPERATOR' | 'RECEPTIONIST' | 'SERVICE_PROVIDER' | 'PROFESSIONAL';
   tier?: string;
   compensationPaise: bigint;
   workDays: number[];
@@ -291,7 +291,7 @@ const SEED_DATA: TenantSeedSpec[] = [
         phone: '+919833000004',
         name: 'Aarav Mehra',
         role: 'PROFESSIONAL',
-        tier: 'MASTER_STYLIST',
+        tier: 'MASTER_SPECIALIST',
         compensationPaise: 9500000n,
         workDays: [3, 4, 5, 6, 0], // Wed–Sun
         startTime: '10:00:00',

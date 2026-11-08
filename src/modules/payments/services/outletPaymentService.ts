@@ -123,13 +123,13 @@ export class OutletPaymentService {
       // Double-Entry Ledger Posting
       if (tender.method === 'OUTLET_CASH') {
         // Line 1: Debit Cash Drawer
-        // Line 2: Credit Salon Revenue
+        // Line 2: Credit Operating Revenue
         await client.query(
           `INSERT INTO ledger_entries (
             tenant_id, appointment_id, payment_id, entry_type, account, amount_paise, currency, reason
           ) VALUES 
             ($1, $2, $3, 'DEBIT', 'CASH_DRAWER', $4, 'INR', 'Desk Cash Tender'),
-            ($1, $2, $3, 'CREDIT', 'SALON_REVENUE', $4, 'INR', 'Desk Cash Tender');`,
+            ($1, $2, $3, 'CREDIT', 'OPERATING_REVENUE', $4, 'INR', 'Desk Cash Tender');`,
           [tenantId, appointmentId, paymentId, tender.amountPaise.toString()]
         );
 
@@ -143,13 +143,13 @@ export class OutletPaymentService {
         }
       } else {
         // Line 1: Debit Gateway Clearing
-        // Line 2: Credit Salon Revenue
+        // Line 2: Credit Operating Revenue
         await client.query(
           `INSERT INTO ledger_entries (
             tenant_id, appointment_id, payment_id, entry_type, account, amount_paise, currency, reason
           ) VALUES 
             ($1, $2, $3, 'DEBIT', 'GATEWAY_CLEARING', $4, 'INR', 'Desk Digital Tender'),
-            ($1, $2, $3, 'CREDIT', 'SALON_REVENUE', $4, 'INR', 'Desk Digital Tender');`,
+            ($1, $2, $3, 'CREDIT', 'OPERATING_REVENUE', $4, 'INR', 'Desk Digital Tender');`,
           [tenantId, appointmentId, paymentId, tender.amountPaise.toString()]
         );
       }
@@ -341,14 +341,14 @@ export class OutletPaymentService {
     const amountPaise = BigInt(pay.amount_paise) as Paise;
 
     // 1. Write exact reversing double-entry lines
-    // Reversal: Credit Cash Drawer / Clearing, Debit Salon Revenue
+    // Reversal: Credit Cash Drawer / Clearing, Debit Operating Revenue
     const clearingAccount = pay.gateway === 'OUTLET_CASH' ? 'CASH_DRAWER' : 'GATEWAY_CLEARING';
 
     await client.query(
       `INSERT INTO ledger_entries (
         tenant_id, appointment_id, payment_id, entry_type, account, amount_paise, currency, reason
       ) VALUES 
-        ($1, $2, $3, 'DEBIT', 'SALON_REVENUE', $4, 'INR', $5),
+        ($1, $2, $3, 'DEBIT', 'OPERATING_REVENUE', $4, 'INR', $5),
         ($1, $2, $3, 'CREDIT', $6, $4, 'INR', $5);`,
       [
         tenantId,
@@ -386,7 +386,7 @@ export class OutletPaymentService {
           tenant_id, appointment_id, payment_id, entry_type, account, amount_paise, currency, reason
         ) VALUES 
           ($1, $2, $3, 'DEBIT', $6, $4, 'INR', $5),
-          ($1, $2, $3, 'CREDIT', 'SALON_REVENUE', $4, 'INR', $5);`,
+          ($1, $2, $3, 'CREDIT', 'OPERATING_REVENUE', $4, 'INR', $5);`,
         [
           tenantId,
           appointmentId,

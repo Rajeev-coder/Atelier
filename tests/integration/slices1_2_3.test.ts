@@ -66,10 +66,10 @@ describe('Slices 1, 2, and 3: Unified Core Architecture Integration Tests', () =
 
       // 1. Provision Tenant A
       const resA = await TenantProvisioningService.provisionTenant({
-        provisioningKey: 'prov-key-salon-a-001',
-        name: 'Salon Alpha',
-        slug: 'salon-alpha',
-        ownerEmail: 'owner@salon-alpha.com',
+        provisioningKey: 'prov-key-platform-a-001',
+        name: 'Platform Alpha',
+        slug: 'platform-alpha',
+        ownerEmail: 'owner@platform-alpha.com',
         ownerPhone: '+919800000001',
         ownerName: 'Alice Owner',
       });
@@ -79,10 +79,10 @@ describe('Slices 1, 2, and 3: Unified Core Architecture Integration Tests', () =
 
       // Prove Idempotency: Retrying with same key returns identical tenant
       const resARetry = await TenantProvisioningService.provisionTenant({
-        provisioningKey: 'prov-key-salon-a-001',
-        name: 'Salon Alpha',
-        slug: 'salon-alpha',
-        ownerEmail: 'owner@salon-alpha.com',
+        provisioningKey: 'prov-key-platform-a-001',
+        name: 'Platform Alpha',
+        slug: 'platform-alpha',
+        ownerEmail: 'owner@platform-alpha.com',
         ownerPhone: '+919800000001',
         ownerName: 'Alice Owner',
       });
@@ -91,10 +91,10 @@ describe('Slices 1, 2, and 3: Unified Core Architecture Integration Tests', () =
 
       // 2. Provision Tenant B
       const resB = await TenantProvisioningService.provisionTenant({
-        provisioningKey: 'prov-key-salon-b-002',
-        name: 'Salon Beta',
-        slug: 'salon-beta',
-        ownerEmail: 'owner@salon-beta.com',
+        provisioningKey: 'prov-key-platform-b-002',
+        name: 'Platform Beta',
+        slug: 'platform-beta',
+        ownerEmail: 'owner@platform-beta.com',
         ownerPhone: '+919800000002',
         ownerName: 'Bob Owner',
       });
@@ -131,7 +131,7 @@ describe('Slices 1, 2, and 3: Unified Core Architecture Integration Tests', () =
     it('prevents a Branch Manager at Branch 1 from managing or accessing Branch 2', () => {
       const branchManagerActor: ActorContext = {
         userId: asUserId('user-manager-001'),
-        email: 'manager@salon-alpha.com',
+        email: 'manager@platform-alpha.com',
         isPlatformAdmin: false,
         tenantId: asTenantId('tenant-a-uuid'),
         roles: [
@@ -163,7 +163,7 @@ describe('Slices 1, 2, and 3: Unified Core Architecture Integration Tests', () =
     it('prevents a Branch Manager from escalating privileges or assigning OWNER roles', () => {
       const branchManagerActor: ActorContext = {
         userId: asUserId('user-manager-001'),
-        email: 'manager@salon-alpha.com',
+        email: 'manager@platform-alpha.com',
         isPlatformAdmin: false,
         tenantId: asTenantId('tenant-a-uuid'),
         roles: [
@@ -199,7 +199,7 @@ describe('Slices 1, 2, and 3: Unified Core Architecture Integration Tests', () =
       const rawStaffList = [
         {
           userId: 'user-prof-1',
-          name: 'Priya Stylist',
+          name: 'Priya Specialist',
           role: 'PROFESSIONAL',
           tier: 'SENIOR',
           base_compensation_paise: '6000000', // ₹60,000
@@ -213,7 +213,7 @@ describe('Slices 1, 2, and 3: Unified Core Architecture Integration Tests', () =
       expect(receptionistView[0].base_compensation_paise).toBeUndefined();
       expect(receptionistView[0].commission_rate_bps).toBeUndefined();
       expect(receptionistView[0].payroll_id).toBeUndefined();
-      expect(receptionistView[0].name).toBe('Priya Stylist');
+      expect(receptionistView[0].name).toBe('Priya Specialist');
       expect(receptionistView[0].tier).toBe('SENIOR');
 
       // 2. Professional caller: compensation fields MUST be scrubbed
@@ -240,7 +240,7 @@ describe('Slices 1, 2, and 3: Unified Core Architecture Integration Tests', () =
         // Setup Professional
         const profRes = await client.query<{ id: string }>(
           `INSERT INTO users (email, phone_e164, name, password_hash)
-           VALUES ('stylist@salon-alpha.com', '+919800000099', 'Senior Stylist', 'HASH')
+           VALUES ('provider@platform-alpha.com', '+919800000099', 'Senior Specialist', 'HASH')
            RETURNING id;`
         );
         professionalId = asUserId(profRes.rows[0].id);
@@ -250,7 +250,7 @@ describe('Slices 1, 2, and 3: Unified Core Architecture Integration Tests', () =
           client,
           {
             userId: ownerAId,
-            email: 'owner@salon-alpha.com',
+            email: 'owner@platform-alpha.com',
             isPlatformAdmin: false,
             tenantId: tenantAId,
             roles: [{ role: 'OWNER', scope: { type: 'TENANT' } }],

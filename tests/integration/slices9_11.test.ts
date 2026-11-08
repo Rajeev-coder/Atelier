@@ -35,7 +35,7 @@ describe('Slices 9 & 11: Outlet Split Tender, Bad Debt Write-Off, Transactional 
   let ownerId: UserId;
   let managerId: UserId;
   let receptionistId: UserId;
-  let stylistId: UserId;
+  let providerId: UserId;
   let serviceId: ServiceId;
   let resourceId: ResourceId;
 
@@ -102,10 +102,10 @@ describe('Slices 9 & 11: Outlet Split Tender, Bad Debt Write-Off, Transactional 
 
         const sUser = await client.query<{ id: string }>(
           `INSERT INTO users (email, phone_e164, name, password_hash)
-           VALUES ('stylist@opsplatform.com', '+919811999004', 'Samir Stylist', 'HASH')
+           VALUES ('provider@opsplatform.com', '+919811999004', 'Samir Specialist', 'HASH')
            RETURNING id;`
         );
-        stylistId = asUserId(sUser.rows[0].id);
+        providerId = asUserId(sUser.rows[0].id);
 
         // Assign Roles
         await StaffRoleAssignmentService.assignRole(
@@ -150,7 +150,7 @@ describe('Slices 9 & 11: Outlet Split Tender, Bad Debt Write-Off, Transactional 
             roles: [{ role: 'OWNER', scope: { type: 'TENANT' } }],
           },
           {
-            targetUserId: stylistId,
+            targetUserId: providerId,
             role: 'PROFESSIONAL',
             scope: { type: 'BRANCH', branchId },
           }
@@ -171,7 +171,7 @@ describe('Slices 9 & 11: Outlet Split Tender, Bad Debt Write-Off, Transactional 
         });
         resourceId = rRes.resourceId;
 
-        await CatalogueEligibilityService.setEligibility(client, tenantId, serviceId, stylistId, true);
+        await CatalogueEligibilityService.setEligibility(client, tenantId, serviceId, providerId, true);
       });
 
       receptionistActor = {
@@ -200,7 +200,7 @@ describe('Slices 9 & 11: Outlet Split Tender, Bad Debt Write-Off, Transactional 
             outstanding_balance_paise, payment_status
           ) VALUES ($1, $2, gen_random_uuid(), $3, $4, NOW(), NOW() + INTERVAL '1 hour', 'CONFIRMED', 200000, 50000, 150000, 'PARTIAL')
           RETURNING id;`,
-          [tenantId, branchId, serviceId, stylistId]
+          [tenantId, branchId, serviceId, providerId]
         );
         appointmentId = apptRes.rows[0].id;
       });
@@ -259,7 +259,7 @@ describe('Slices 9 & 11: Outlet Split Tender, Bad Debt Write-Off, Transactional 
             outstanding_balance_paise, payment_status
           ) VALUES ($1, $2, gen_random_uuid(), $3, $4, NOW(), NOW() + INTERVAL '1 hour', 'CONFIRMED', 100000, 50000, 50000, 'PARTIAL')
           RETURNING id;`,
-          [tenantId, branchId, serviceId, stylistId]
+          [tenantId, branchId, serviceId, providerId]
         );
         unpaidApptId = apptRes.rows[0].id;
       });
@@ -319,7 +319,7 @@ describe('Slices 9 & 11: Outlet Split Tender, Bad Debt Write-Off, Transactional 
           idempotencyKey: `outbox_idem_${Date.now()}`,
           branchId,
           serviceId,
-          professionalId: stylistId,
+          professionalId: providerId,
           customerPhone: '+919811333444',
           customerFirstName: 'Asha',
           startTime: bookingStartTime,
@@ -392,7 +392,7 @@ describe('Slices 9 & 11: Outlet Split Tender, Bad Debt Write-Off, Transactional 
           idempotencyKey: `crash_test_idem_${Date.now()}`,
           branchId,
           serviceId,
-          professionalId: stylistId,
+          professionalId: providerId,
           customerPhone: '+919811222111',
           customerFirstName: 'Rohit',
           startTime: apptTime,
@@ -451,7 +451,7 @@ describe('Slices 9 & 11: Outlet Split Tender, Bad Debt Write-Off, Transactional 
           idempotencyKey: `stop_test_${Date.now()}`,
           branchId,
           serviceId,
-          professionalId: stylistId,
+          professionalId: providerId,
           customerPhone: optOutPhone,
           customerFirstName: 'Meera',
           startTime: initialTime,

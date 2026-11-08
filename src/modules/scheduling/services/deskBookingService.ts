@@ -105,7 +105,7 @@ export class DeskBookingService {
           input.startTime,
           input.endTime,
           expiresAt,
-          actor.roles[0]?.role || 'RECEPTIONIST',
+          actor.roles[0]?.role || 'FRONT_DESK_OPERATOR',
         ]
       );
       const holdId = holdRes.rows[0].id;
@@ -178,7 +178,7 @@ export class DeskBookingService {
     }
 
     // 2. Verify Role Capability for Desk Bookings
-    const allowedRoles = ['OWNER', 'BRANCH_MANAGER', 'RECEPTIONIST'];
+    const allowedRoles = ['OWNER', 'BRANCH_MANAGER', 'FRONT_DESK_OPERATOR', 'RECEPTIONIST'];
     const hasRole = actor.roles.some((r) => allowedRoles.includes(r.role));
     if (!hasRole && !actor.isPlatformAdmin) {
       throw new AuthorizationDeniedError('desk:book', 'Role not permitted to create desk bookings.');
@@ -285,7 +285,7 @@ export class DeskBookingService {
 
       // 9. Transactional Outbox Pattern: Enqueue Confirmation & Reminder in the SAME transaction
       const sNameRes = await client.query<{ name: string }>('SELECT name FROM services WHERE id = $1;', [input.serviceId]);
-      const serviceName = sNameRes.rows[0]?.name || 'Salon Service';
+      const serviceName = sNameRes.rows[0]?.name || 'Standard Service';
 
       await OutboxService.queueBookingMessages(
         client,

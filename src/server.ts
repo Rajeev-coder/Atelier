@@ -1,12 +1,12 @@
 // src/server.ts
-// Atelier: Multi-Tenant Salon Operations & High-Concurrency Booking Platform
+// Atelier: Multi-Tenant Service Operations & High-Concurrency Booking Platform
 // Next-Gen Web3 Frosted-Glass Interactive Application Console
 
 import http from 'node:http';
 
 const PORT = Number(process.env.PORT) || 3000;
 
-// Multi-Tenant Fixture Store (Salon, Gym, Yoga)
+// Multi-Tenant Fixture Store (Aesthetics, Athletics, Wellness)
 const TENANTS_STORE: Record<string, any> = {
   'luxe-salon': {
     id: 'tenant-luxe-001',
@@ -15,13 +15,13 @@ const TENANTS_STORE: Record<string, any> = {
     vertical: 'Haute Coiffure & Aesthetic Rituals',
     tagline: 'Experience world-class French balayage, custom facial transformations, and restorative spa alchemy.',
     professionalRole: {
-      title: 'Stylist / Professional',
-      shortTitle: 'Stylist',
+      title: 'Service Provider / Specialist',
+      shortTitle: 'Service Provider',
       scopeLabel: 'My Assigned Clients',
       icon: '✂️',
       description: 'My Assigned Clients & Personal Schedule',
-      wizardTitle: 'Select Your Artisan Stylist',
-      wizardSubtitle: 'Master colorists & estheticians certified for your service'
+      wizardTitle: 'Select Your Service Provider',
+      wizardSubtitle: 'Master specialists & estheticians certified for your service'
     },
     branch: 'Beverly Hills Flagship • 450 N Rodeo Dr',
     accentGlow: 'from-fuchsia-600/30 via-violet-600/20 to-transparent',
@@ -131,7 +131,7 @@ function renderHTML(): string {
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Atelier — Next-Gen Salon Operations & Online Experience</title>
+  <title>Atelier — Next-Gen Service Operations & Online Experience</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Cinzel:wght@500;600;700;800&display=swap" rel="stylesheet">
@@ -352,21 +352,21 @@ function renderHTML(): string {
               <div class="w-8 h-8 rounded-lg bg-violet-500/10 border border-violet-500/30 flex items-center justify-center text-sm">🛎️</div>
               <div class="flex-1 min-w-0">
                 <div class="flex items-center justify-between">
-                  <span class="text-xs font-bold text-white group-hover:text-violet-300 transition-colors">Receptionist</span>
+                  <span class="text-xs font-bold text-white group-hover:text-violet-300 transition-colors">Front Desk Operator</span>
                   <span class="text-[9px] font-mono px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/40">Desk POS</span>
                 </div>
                 <p class="text-[10px] text-slate-400 truncate">POS Walk-in Booking & Cash Drawer Float</p>
               </div>
             </div>
 
-            <div onclick="selectRole('STYLIST')" class="flex items-center gap-3 p-2 rounded-xl hover:bg-violet-600/20 hover:border-violet-500/40 border border-transparent transition-all cursor-pointer group">
-              <div class="w-8 h-8 rounded-lg bg-violet-500/10 border border-violet-500/30 flex items-center justify-center text-sm" id="roleItemStylistIcon">✂️</div>
+            <div onclick="selectRole('SERVICE_PROVIDER')" class="flex items-center gap-3 p-2 rounded-xl hover:bg-violet-600/20 hover:border-violet-500/40 border border-transparent transition-all cursor-pointer group">
+              <div class="w-8 h-8 rounded-lg bg-violet-500/10 border border-violet-500/30 flex items-center justify-center text-sm" id="roleItemProviderIcon">✂️</div>
               <div class="flex-1 min-w-0">
                 <div class="flex items-center justify-between">
-                  <span class="text-xs font-bold text-white group-hover:text-violet-300 transition-colors" id="roleItemStylistTitle">Stylist / Professional</span>
+                  <span class="text-xs font-bold text-white group-hover:text-violet-300 transition-colors" id="roleItemProviderTitle">Service Provider / Specialist</span>
                   <span class="text-[9px] font-mono px-1.5 py-0.5 rounded bg-fuchsia-500/20 text-fuchsia-300 border border-fuchsia-500/40">Restricted</span>
                 </div>
-                <p class="text-[10px] text-slate-400 truncate" id="roleItemStylistDesc">My Assigned Clients & Personal Commission</p>
+                <p class="text-[10px] text-slate-400 truncate" id="roleItemProviderDesc">My Assigned Clients & Personal Commission</p>
               </div>
             </div>
 
@@ -423,7 +423,7 @@ function renderHTML(): string {
         <div class="h-px flex-1 mx-4 bg-white/10"></div>
         <div class="flex items-center gap-2 text-slate-500" id="step2Ind">
           <div class="w-7 h-7 rounded-lg bg-surface-200 border border-white/10 flex items-center justify-center text-xs">02</div>
-          <span id="step2IndicatorLabel">Stylist</span>
+          <span id="step2IndicatorLabel">Provider</span>
         </div>
         <div class="h-px flex-1 mx-4 bg-white/10"></div>
         <div class="flex items-center gap-2 text-slate-500" id="step3Ind">
@@ -449,7 +449,7 @@ function renderHTML(): string {
       <div id="servicesGrid" class="grid sm:grid-cols-2 lg:grid-cols-4 gap-6"></div>
     </div>
 
-    <!-- STEP 2: CHOOSE STYLIST -->
+    <!-- STEP 2: CHOOSE SERVICE PROVIDER -->
     <div id="step2Card" class="hidden">
       <button onclick="navStep(1)" class="text-xs text-slate-400 hover:text-white flex items-center gap-1.5 mb-6 transition-colors">
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
@@ -457,7 +457,7 @@ function renderHTML(): string {
       </button>
 
       <div class="mb-6">
-        <h2 class="text-xl font-bold font-display text-white" id="step2Heading">Select Your Artisan</h2>
+        <h2 class="text-xl font-bold font-display text-white" id="step2Heading">Select Your Service Provider</h2>
         <p class="text-xs text-slate-400 mt-1" id="step2Subheading">Specialists certified for your selected service</p>
       </div>
 
@@ -640,7 +640,7 @@ function renderHTML(): string {
             <span class="text-xs text-slate-500">•</span>
             <span class="text-xs text-slate-400 font-semibold" id="adminBranchText">Beverly Hills Flagship</span>
           </div>
-          <h2 class="text-2xl font-display font-bold text-white mt-1">Salon Operations & Ledger Control</h2>
+          <h2 class="text-2xl font-display font-bold text-white mt-1">Operations & Ledger Control</h2>
         </div>
 
         <div class="flex items-center gap-3">
@@ -686,7 +686,7 @@ function renderHTML(): string {
       </div>
     </div>
 
-    <!-- Tabbed Workplace Views: Schedule, Kacha Khata Drawer, Staff Compensation -->
+    <!-- Tabbed Workplace Views: Schedule, Petty Cash Voucher System, Staff Compensation -->
     <div class="glass-panel rounded-3xl overflow-hidden border border-white/10">
       
       <!-- Inner Tabs -->
@@ -698,7 +698,7 @@ function renderHTML(): string {
 
         <button onclick="switchWorkTab('drawer')" id="workTabDrawer" class="pb-4 border-b-2 border-transparent text-slate-400 hover:text-white flex items-center gap-2">
           <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-          Cash Drawer & "Kacha Khata" Vouchers
+          Cash Drawer & Petty Cash Voucher System
         </button>
 
         <button onclick="switchWorkTab('staff')" id="workTabStaff" class="pb-4 border-b-2 border-transparent text-slate-400 hover:text-white flex items-center gap-2">
@@ -728,7 +728,7 @@ function renderHTML(): string {
         </div>
       </div>
 
-      <!-- 2. CASH DRAWER & VOUCHERS ("KACHA KHATA") TAB -->
+      <!-- 2. CASH DRAWER & PETTY CASH VOUCHER SYSTEM TAB -->
       <div id="workDrawerView" class="hidden p-6">
         <!-- Drawer Balance Overview Card -->
         <div class="grid sm:grid-cols-3 gap-4 mb-8">
@@ -753,7 +753,7 @@ function renderHTML(): string {
 
         <div class="flex justify-between items-center mb-4">
           <div>
-            <h4 class="text-sm font-bold font-display text-white">Daily Out-of-Pocket Vouchers ("Kacha Khata")</h4>
+            <h4 class="text-sm font-bold font-display text-white">Daily Out-of-Pocket Vouchers (Petty Cash Voucher System)</h4>
             <p class="text-xs text-slate-400">Expenses reviewed and reconciled with double-entry ledgers</p>
           </div>
           <button onclick="openVoucherModal()" class="px-3 py-1.5 rounded-lg bg-surface-200 hover:bg-surface-300 text-xs font-bold text-white border border-surface-border cursor-pointer">+ New Voucher</button>
@@ -861,7 +861,7 @@ function renderHTML(): string {
           <label class="block font-bold text-slate-400 mb-1 uppercase tracking-wider">Expense Category</label>
           <select id="vchCategory" class="w-full bg-surface-100 border border-surface-border rounded-xl p-3 text-white focus:outline-none">
             <option value="Client Hospitality">Client Hospitality (Tea / Coffee / Macarons)</option>
-            <option value="Floor Supplies">Salon Supplies (Emergency Foils, Cotton, Dye)</option>
+            <option value="Floor Supplies">Operational Supplies (Consumables & Essentials)</option>
             <option value="Errands">Local Courier / Transport</option>
             <option value="Sanitation">Sanitation & Maintenance Supplies</option>
           </select>
@@ -915,13 +915,15 @@ function renderHTML(): string {
     const ROLE_META = {
       'OWNER': { icon: '👑', label: 'Owner (Full P&L & Compensation)' },
       'MANAGER': { icon: '🏢', label: 'Branch Manager (Floor & Vouchers)' },
-      'RECEPTIONIST': { icon: '🛎️', label: 'Receptionist (POS Walk-in & Drawer)' },
-      'STYLIST': { icon: '✂️', label: 'Stylist (My Assigned Clients)' }
+      'RECEPTIONIST': { icon: '🛎️', label: 'Front Desk Operator (POS Walk-in & Drawer)' },
+      'FRONT_DESK_OPERATOR': { icon: '🛎️', label: 'Front Desk Operator (POS Walk-in & Drawer)' },
+      'SERVICE_PROVIDER': { icon: '✂️', label: 'Service Provider (My Assigned Clients)' },
+      'STYLIST': { icon: '✂️', label: 'Service Provider (My Assigned Clients)' }
     };
 
     function getRoleMeta(role, tenant) {
       const t = tenant || getActiveTenant();
-      if (role === 'STYLIST') {
+      if (role === 'SERVICE_PROVIDER' || role === 'STYLIST') {
         const pr = t.professionalRole;
         return {
           icon: pr.icon,
@@ -1004,16 +1006,16 @@ function renderHTML(): string {
 
       // Dynamically update the Role Dropdown for this tenant's professional title
       const pr = t.professionalRole;
-      const rItemIcon = document.getElementById('roleItemStylistIcon');
-      const rItemTitle = document.getElementById('roleItemStylistTitle');
-      const rItemDesc = document.getElementById('roleItemStylistDesc');
+      const rItemIcon = document.getElementById('roleItemProviderIcon');
+      const rItemTitle = document.getElementById('roleItemProviderTitle');
+      const rItemDesc = document.getElementById('roleItemProviderDesc');
       if (rItemIcon) rItemIcon.textContent = pr.icon;
       if (rItemTitle) rItemTitle.textContent = pr.title;
       if (rItemDesc) rItemDesc.textContent = pr.description;
 
-      // If STYLIST role is currently active, update button label & role badge
-      if (activeRole === 'STYLIST') {
-        const rMeta = getRoleMeta('STYLIST', t);
+      // If SERVICE_PROVIDER role is currently active, update button label & role badge
+      if (activeRole === 'SERVICE_PROVIDER' || activeRole === 'STYLIST') {
+        const rMeta = getRoleMeta(activeRole, t);
         const rIconEl = document.getElementById('selectedRoleIcon');
         const rLabelEl = document.getElementById('selectedRoleLabel');
         if (rIconEl) rIconEl.textContent = rMeta.icon;
@@ -1076,7 +1078,7 @@ function renderHTML(): string {
       const t = getActiveTenant();
       const meta = getRoleMeta(role, t);
 
-      const roleBadgeTitle = (role === 'STYLIST') ? t.professionalRole.shortTitle.toUpperCase() : role;
+      const roleBadgeTitle = (role === 'SERVICE_PROVIDER' || role === 'STYLIST') ? t.professionalRole.shortTitle.toUpperCase() : role;
       document.getElementById('badgeRoleTitle').textContent = 'ROLE: ' + roleBadgeTitle;
 
       const iconEl = document.getElementById('selectedRoleIcon');
@@ -1090,7 +1092,7 @@ function renderHTML(): string {
       const thCommission = document.getElementById('thCommission');
       const btnQuickVoucher = document.getElementById('btnQuickVoucher');
 
-      if (role === 'STYLIST') {
+      if (role === 'SERVICE_PROVIDER' || role === 'STYLIST') {
         cardRev.style.display = 'none';
         cardDrawer.style.display = 'none';
         thSalary.style.display = 'none';
@@ -1099,7 +1101,7 @@ function renderHTML(): string {
       } else if (role === 'RECEPTIONIST') {
         cardRev.style.display = 'block';
         cardDrawer.style.display = 'block';
-        thSalary.style.display = 'none'; // Receptionist cannot see base salaries
+        thSalary.style.display = 'none'; // Front Desk Operator cannot see base salaries
         thCommission.style.display = 'none';
         btnQuickVoucher.style.display = 'inline-flex';
       } else {
@@ -1159,7 +1161,7 @@ function renderHTML(): string {
       navStep(2);
     }
 
-    // Render Stylist Selector
+    // Render Service Provider Selector
     function renderStaffSelector() {
       const t = getActiveTenant();
       const container = document.getElementById('staffGrid');
@@ -1302,7 +1304,7 @@ function renderHTML(): string {
       aptBody.innerHTML = '';
 
       let list = t.appointments;
-      if (activeRole === 'STYLIST') {
+      if (activeRole === 'SERVICE_PROVIDER' || activeRole === 'STYLIST') {
         const primaryStaffName = t.staff[0].name.split(' ')[0];
         list = t.appointments.filter(a => a.staff.includes(primaryStaffName));
       }
@@ -1374,7 +1376,7 @@ function renderHTML(): string {
         }).join(', ');
 
         const showSalary = (activeRole === 'OWNER');
-        const showComm = (activeRole !== 'STYLIST');
+        const showComm = (activeRole !== 'SERVICE_PROVIDER' && activeRole !== 'STYLIST');
 
         tr.innerHTML = \`
           <td class="py-3.5 px-4 flex items-center gap-3">

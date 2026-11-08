@@ -7,7 +7,7 @@ export type ServiceId = string & { readonly __brand: unique symbol };
 export type ResourceId = string & { readonly __brand: unique symbol };
 export type Paise = bigint & { readonly __brand: unique symbol };
 
-export type RoleType = 'PLATFORM_ADMIN' | 'OWNER' | 'BRANCH_MANAGER' | 'RECEPTIONIST' | 'PROFESSIONAL';
+export type RoleType = 'PLATFORM_ADMIN' | 'OWNER' | 'BRANCH_MANAGER' | 'FRONT_DESK_OPERATOR' | 'RECEPTIONIST' | 'SERVICE_PROVIDER' | 'PROFESSIONAL';
 export type ScopeType = 'TENANT' | 'BRANCH' | 'SELF';
 export type TenantStatus = 'PROVISIONING' | 'ACTIVE' | 'SUSPENDED';
 export type ResourceKind = 'ROOM' | 'BED' | 'CHAIR' | 'EQUIPMENT';

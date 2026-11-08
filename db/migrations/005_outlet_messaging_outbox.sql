@@ -24,7 +24,7 @@ ALTER TABLE appointments
 -- Update ledger_entries account check constraint to permit BAD_DEBT_EXPENSE
 ALTER TABLE ledger_entries DROP CONSTRAINT IF EXISTS ledger_entries_account_check;
 ALTER TABLE ledger_entries ADD CONSTRAINT ledger_entries_account_check CHECK (
-    account IN ('ACCOUNTS_RECEIVABLE', 'CASH_DRAWER', 'GATEWAY_CLEARING', 'CUSTOMER_REFUNDS', 'SALON_REVENUE', 'BAD_DEBT_EXPENSE')
+    account IN ('ACCOUNTS_RECEIVABLE', 'CASH_DRAWER', 'GATEWAY_CLEARING', 'CUSTOMER_REFUNDS', 'OPERATING_REVENUE', 'BAD_DEBT_EXPENSE')
 );
 
 -- ============================================================================

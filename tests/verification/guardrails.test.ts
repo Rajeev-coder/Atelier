@@ -262,7 +262,7 @@ describe('Guardrail Invariant Tests (GR-T through GR-M)', () => {
         commission_rate_bps: 500,
         payroll_id: 'PAY-001',
         bank_account: '1234567890',
-        email: 'jane@salon.com',
+        email: 'jane@service.com',
       };
 
       const serialized = FieldSerializer.serializeStaff(rawStaff, ['RECEPTIONIST']) as Record<string, unknown>;
@@ -544,7 +544,7 @@ describe('Guardrail Invariant Tests (GR-T through GR-M)', () => {
         await client.query(
           `INSERT INTO ledger_entries (id, tenant_id, payment_id, entry_type, account_code, amount_paise, currency, description)
            VALUES ($1, $2, $3, 'DEBIT',  'CASH_DRAWER',  100000, 'INR', 'GR Test'),
-                  ($4, $2, $3, 'CREDIT', 'SALON_REVENUE', 100000, 'INR', 'GR Test');`,
+                  ($4, $2, $3, 'CREDIT', 'OPERATING_REVENUE', 100000, 'INR', 'GR Test');`,
           [entryId, tenantAId, paymentId, randomUUID()]
         );
 
@@ -576,7 +576,7 @@ describe('Guardrail Invariant Tests (GR-T through GR-M)', () => {
         await client.query(
           `INSERT INTO ledger_entries (id, tenant_id, payment_id, entry_type, account_code, amount_paise, currency, description)
            VALUES ($1, $2, $3, 'DEBIT', 'CASH_DRAWER', 50000, 'INR', 'GR Delete Test'),
-                  ($4, $2, $3, 'CREDIT', 'SALON_REVENUE', 50000, 'INR', 'GR Delete Test');`,
+                  ($4, $2, $3, 'CREDIT', 'OPERATING_REVENUE', 50000, 'INR', 'GR Delete Test');`,
           [entryId, tenantAId, paymentId, randomUUID()]
         );
 
@@ -614,7 +614,7 @@ describe('Guardrail Invariant Tests (GR-T through GR-M)', () => {
           await client.query(
             `INSERT INTO ledger_entries (id, tenant_id, payment_id, entry_type, account_code, amount_paise, currency, description)
              VALUES ($1, $2, $3, 'DEBIT',  'CASH_DRAWER',   $4, 'INR', 'GR-D04 stress'),
-                    ($5, $2, $3, 'CREDIT', 'SALON_REVENUE', $4, 'INR', 'GR-D04 stress');`,
+                    ($5, $2, $3, 'CREDIT', 'OPERATING_REVENUE', $4, 'INR', 'GR-D04 stress');`,
             [randomUUID(), tenantAId, pid, amount, randomUUID()]
           );
         }

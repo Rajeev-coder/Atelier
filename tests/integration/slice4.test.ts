@@ -38,7 +38,7 @@ describe('Slice 4: Availability Engine, Slot Holds, and Desk Booking Integration
   let gymPlatformResourceId: ResourceId;
 
   let yogaTenantId: TenantId;
-  let salonTenantId: TenantId;
+  let serviceTenantId: TenantId;
 
   beforeAll(async () => {
     try {
@@ -240,43 +240,43 @@ describe('Slice 4: Availability Engine, Slot Holds, and Desk Booking Integration
         return;
       }
 
-      // Provision Salon Tenant
-      const salonProv = await TenantProvisioningService.provisionTenant({
-        provisioningKey: 'prov-salon-avail-001',
-        name: 'Femme Luxe Availability Salon',
-        slug: 'avail-salon',
-        ownerEmail: 'salon@avail.com',
+      // Provision Service Organization Tenant
+      const serviceProv = await TenantProvisioningService.provisionTenant({
+        provisioningKey: 'prov-service-avail-001',
+        name: 'Service Platform Availability Hub',
+        slug: 'avail-service',
+        ownerEmail: 'owner@availservice.com',
         ownerPhone: '+919833888001',
         ownerName: 'Natasha Flagship',
       });
-      salonTenantId = salonProv.tenantId;
-      const salonBranchId = salonProv.branchId;
+      serviceTenantId = serviceProv.tenantId;
+      const serviceBranchId = serviceProv.branchId;
 
-      let stylistId: UserId;
+      let providerId: UserId;
       let haircutServiceId: ServiceId;
       let stylingChairId: ResourceId;
 
-      await DatabaseClient.withTenantTransaction(salonTenantId, async (client) => {
+      await DatabaseClient.withTenantTransaction(serviceTenantId, async (client) => {
         const uRes = await client.query<{ id: string }>(
           `INSERT INTO users (email, phone_e164, name, password_hash)
-           VALUES ('stylist@avail.com', '+919833888002', 'Aarav Stylist', 'HASH')
+           VALUES ('provider@avail.com', '+919833888002', 'Aarav Specialist', 'HASH')
            RETURNING id;`
         );
-        stylistId = asUserId(uRes.rows[0].id);
+        providerId = asUserId(uRes.rows[0].id);
 
         // Schedule: Mon 10:00–12:00 (target date 2026-11-09 is Monday)
         await CatalogueEligibilityService.setWorkingHours(
           client,
-          salonTenantId,
-          salonBranchId,
-          stylistId,
+          serviceTenantId,
+          serviceBranchId,
+          providerId,
           1, // Monday
           '10:00:00',
           '12:00:00'
         );
 
         // Service requires CHAIR
-        const sRes = await CatalogueEligibilityService.createService(client, salonTenantId, {
+        const sRes = await CatalogueEligibilityService.createService(client, serviceTenantId, {
           name: 'Cut & Style',
           durationMinutes: 60,
           basePricePaise: toPaise(120000),
@@ -286,14 +286,14 @@ describe('Slice 4: Availability Engine, Slot Holds, and Desk Booking Integration
         await client.query(
           `INSERT INTO service_resource_requirements (tenant_id, service_id, resource_type, quantity)
            VALUES ($1, $2, 'CHAIR', 1);`,
-          [salonTenantId, haircutServiceId]
+          [serviceTenantId, haircutServiceId]
         );
 
-        await CatalogueEligibilityService.setEligibility(client, salonTenantId, haircutServiceId, stylistId, true);
+        await CatalogueEligibilityService.setEligibility(client, serviceTenantId, haircutServiceId, providerId, true);
 
         // Create only ONE Styling Chair
-        const rRes = await CatalogueEligibilityService.createResource(client, salonTenantId, {
-          branchId: salonBranchId,
+        const rRes = await CatalogueEligibilityService.createResource(client, serviceTenantId, {
+          branchId: serviceBranchId,
           name: 'Only Chair 1',
           resourceType: 'CHAIR',
         });
@@ -303,15 +303,15 @@ describe('Slice 4: Availability Engine, Slot Holds, and Desk Booking Integration
         await client.query(
           `INSERT INTO appointment_resources (tenant_id, resource_id, start_time, end_time, status)
            VALUES ($1, $2, '2026-11-09T10:00:00Z', '2026-11-09T11:00:00Z', 'CONFIRMED');`,
-          [salonTenantId, stylingChairId]
+          [serviceTenantId, stylingChairId]
         );
       });
 
-      // Query availability for the stylist on Monday 2026-11-09
-      await DatabaseClient.withTenantTransaction(salonTenantId, async (client) => {
+      // Query availability for the service provider on Monday 2026-11-09
+      await DatabaseClient.withTenantTransaction(serviceTenantId, async (client) => {
         const slots = await AvailabilityEngine.computeAvailableSlots(client, {
-          tenantId: salonTenantId,
-          branchId: salonBranchId,
+          tenantId: serviceTenantId,
+          branchId: serviceBranchId,
           serviceId: haircutServiceId,
           date: '2026-11-09',
           slotIntervalMinutes: 60,
